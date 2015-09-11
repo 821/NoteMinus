@@ -6,7 +6,7 @@
 ### 特色
 * 如不需要 FTP 和 WebDAV 、改換打包方式，尺帛支持 Windows, MAC, Linux 。現在衹做了 Windows 。
 * 尺帛使用 Pandoc 將 Markdown, reST, Textile, LaTeX, org 等格式源文件轉爲 HTML 文件並預覽（ css 和 js 由用戶自決）。所以尺帛也可以看作 Jekyll, hexo 等靜態 blog 程序的簡陋型第三方預覽器。
-* 尺帛可通過 FTP, WebDAV, SimpleNote, 本地打包等方式備份。所以尺帛也可看作一個支持多種格式還帶加密備份的 SimpleNote 客戶端。
+* 尺帛可通過 FTP, WebDAV, SimpleNote, 本地打包等方式備份。所以尺帛也可看作一個支持多種格式，支持自定義顏色樣式，還帶加密備份的 SimpleNote 客戶端。
 * 尺帛可指使用戶的常用編輯器打開源文件。編輯器是引戰領域，採「用戶自決」原則，體驗較佳。所以尺帛也可以看作所有一個適應所有編輯器的插件，使得這些編輯器帶有筆記軟件功能。
 * 代碼保持精簡，遵循 KISS 原則。
 
