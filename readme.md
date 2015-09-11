@@ -16,7 +16,7 @@
 ### 使用
 * 下載 Note-.pyw 和 conf.py 。
 * 安裝 Python 環境、模塊（ PyQt4 和 simplenote ），裝好 Pandoc, WinSCP, 7zip 。
-* 根據自身情況塡寫 conf.py 。
+* 根據自身情況塡寫 conf.py 。仿照 files.txt 的格式塡寫自己的文件列表。
 * 打開 Note-.pyw 。
 
 ### Log:
