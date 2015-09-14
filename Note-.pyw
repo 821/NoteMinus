@@ -1,5 +1,5 @@
 import sys,re,os,shutil,datetime,simplenote
-from PyQt4.QtGui import *; from PyQt4.QtWebKit import QWebView; from PyQt4.QtCore import Qt,QObject
+from PyQt4.QtGui import *; from PyQt4.QtWebKit import QWebView,QWebPage; from PyQt4.QtCore import Qt,QObject
 from conf import * # import settings
 
 # convinience functions
@@ -15,6 +15,7 @@ def add2List(name):
 	lItem = QListWidgetItem(name)
 	lItem.setBackgroundColor(QColor('black'))
 	lItem.setTextColor(QColor('white'))
+	lItem.setFont(QFont("serif", 14))
 	listWidget.addItem(lItem)
 # check existence and create
 def foldercreate(path):
@@ -182,7 +183,7 @@ fullLayout.addWidget(listWidget)
 fullLayout.addLayout(rightHalf)
 widget.setLayout(fullLayout)
 screen = QDesktopWidget().screenGeometry()
-widget.setGeometry(0, 100, screen.width(), screen.height()-130)
+widget.setGeometry(0, 70, screen.width(), screen.height()-100)
 initialize()
 widget.show()
 app.exec_()
