@@ -15,7 +15,7 @@ def add2List(name):
 	lItem = QListWidgetItem(name)
 	lItem.setBackgroundColor(QColor('black'))
 	lItem.setTextColor(QColor('white'))
-	lItem.setFont(QFont("serif", 14))
+	lItem.setFont(QFont('serif', 14))
 	listWidget.addItem(lItem)
 # check existence and create
 def foldercreate(path):
@@ -34,8 +34,8 @@ def pushButton(text, tooltip, func, key):
 def initialize():
 	listWidget.clear()
 	global filedict
-	alldo(add2List, ['All Files', 'Style'])
-	filedict = {'All Files': listfile, 'Style': cssjs}
+	alldo(add2List, ['All Notes', 'Style'])
+	filedict = {'All Notes': listfile, 'Style': cssjs}
 	with open(listfile, 'r', encoding='utf-8') as f:
 		for i in f.read().splitlines():
 			j = i.split('    ')
@@ -75,7 +75,6 @@ def refresh():
 
 # edit selected item and the item being viewed
 edit = lambda path: os.system(te + ' ' + path)
-editview = lambda: edit(filedict[tabWidget.tabText(tabWidget.currentIndex())])
 
 # backup
 zip = lambda path: os.system(szip + ' a ' + os.path.join(zipfolder, backuptime + '.zip') + ' -p' + password + ' ' + path)
@@ -160,8 +159,8 @@ listWidget = QListWidget()
 listWidget.setFixedWidth(150)
 llineEdit, blineEdit = QLineEdit(), QLineEdit()
 pushButton('List C+F1', 'Reload the list', initialize, Qt.CTRL + Qt.Key_F1)
-pushButton('Find F1', 'Find the next item with the string', lambda: finds(byname, llineEdit.text()), Qt.Key_F1)
-pushButton('FIF F2', 'Find the next item with the string', lambda: finds(bycontent, llineEdit.text()), Qt.Key_F2)
+pushButton('Find F1', 'Find the string in given names', lambda: finds(byname, llineEdit.text()), Qt.Key_F1)
+pushButton('FIF F2', 'Find the string in files', lambda: finds(bycontent, llineEdit.text()), Qt.Key_F2)
 buttonLayout.addWidget(llineEdit)
 pushButton('View F3', 'View selected item', lambda: view(crListItem()), Qt.Key_F3)
 pushButton('Tab F4', 'View in a new tab', newtab, Qt.Key_F4)
@@ -169,7 +168,7 @@ pushButton('F5', 'Regenerate currently viewing item', refresh, Qt.Key_F5)
 pushButton('Conv F6', 'Generate selected item to HTML', regenerate, Qt.Key_F6)
 pushButton('CA C+F6', 'Generate all items to HTML', lambda:alldo(generate, filedict.values()), Qt.CTRL + Qt.Key_F6)
 pushButton('Edit F7', 'Edit selected item', lambda: edit(filedict[crListItem()]), Qt.Key_F7)
-pushButton('ET F8', 'Edit item in current tab', editview, Qt.Key_F8)
+pushButton('ET F8', 'Edit item in current tab', lambda: edit(filedict[tabWidget.tabText(tabWidget.currentIndex())]), Qt.Key_F8)
 pushButton('FTP F9', 'Upload selected item to FTP/WebDAV', lambda: ftp(filedict[crListItem()]), Qt.Key_F9)
 pushButton('FA C+F9', 'Pack all items with password and upload to FTP/WebDAV', ftpall, Qt.CTRL + Qt.Key_F9)
 pushButton('SNote F10', 'Backup selected item to SimpleNote', lambda:snote(crListItem()), Qt.Key_F10)
