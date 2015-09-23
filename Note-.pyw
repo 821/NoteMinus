@@ -40,7 +40,8 @@ def initialize():
 		for i in f.read().splitlines():
 			j = i.split('    ')
 			filedict[j[0]] = os.path.normpath(j[1])
-			add2List(j[0])
+			if j[0] != 'MMB':
+				add2List(j[0])
 
 # viewing related
 def view(name):
