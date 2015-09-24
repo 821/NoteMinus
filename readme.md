@@ -17,8 +17,8 @@
 
 ### 使用
 1. 下載 Note-.pyw 和 conf.py 。
-2. 安裝 Python 環境、模塊（ PyQt4 和 simplenote ），裝好 Pandoc, WinSCP, 7zip 。
-3. 根據自身情況塡寫 conf.py 。仿照 files.txt 的格式塡寫自己的文件列表。
+2. 安裝 [Python 3](https://www.python.org/downloads/) 環境、模塊（ [PyQt4](https://www.riverbankcomputing.com/software/pyqt/download) 和 [simplenote](https://github.com/mrtazz/simplenote.py) ），裝好 [Pandoc](https://github.com/jgm/pandoc/releases/latest), [WinSCP](https://winscp.net/eng/download.php), [7zip](http://www.7-zip.org/download.html) 。
+3. 根據自身情況塡寫 conf.py 。仿照 files.txt 的格式塡寫筆記列表和需要備份的多媒體文件（多媒體文件的名字應指定爲 MMB ，否則將出現在筆記列表中）。
 4. 打開 Note-.pyw 。
 
 ### Log:
