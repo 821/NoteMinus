@@ -1,12 +1,13 @@
 import sys,re,os,shutil,datetime,simplenote
-from PyQt4.QtGui import *; from PyQt4.QtWebKit import QWebView,QWebPage; from PyQt4.QtCore import Qt,QObject
+from PyQt4.QtGui import *; from PyQt4.QtWebKit import QWebView,QWebPage; from PyQt4.QtCore import *
 from conf import * # import settings
 
-# convinience functions
+# lazy functions
 outpath = lambda inpath: outfolder + os.path.basename(inpath) + '.html'
 crListItem = lambda: listWidget.currentItem().text()
 crTabWidget = lambda: tabWidget.currentWidget()
 lastbackup = lambda: os.path.join(zipfolder, max(os.listdir(zipfolder)))
+edit = lambda path: os.system(te + ' ' + path)
 def alldo(func, list):
 	for v in list:
 		func(v)
@@ -55,16 +56,14 @@ def newtab():
 # generate from input files
 html = lambda infile, informat: os.system(pandoc + ' ' + infile + ' -f ' + informat + ' -t html --highlight-style=pygments -H ' + cssjs + ' -s -o ' + outpath(infile))
 def generate(itempath):
-	if itempath[-2:] == 'md' or itempath[-3:] == 'txt':
-		html(itempath, 'markdown_github')
-	elif itempath[-7:] == 'textile':
-		html(itempath, 'textile')
-	elif itempath[-3:] == 'tex':
+	ext = os.path.splitext(itempath)[-1][1:]
+	print(ext)
+	if ext == 'tex':
 		html(itempath, 'latex')
-	elif itempath[-3:] == 'rst':
-		html(itempath, 'rst')
-	elif itempath[-3:] == 'org':
-		html(itempath, 'org')
+	elif ext in ('md', 'txt'):
+		html(itempath, 'markdown_github')
+	elif ext in ('rst', 'org', 'textile', 'rtf', 'docx', 'epub', 'opml'):
+		html(itempath, ext)
 	else:
 		html(itempath, 'html')
 def regenerate():
@@ -73,9 +72,6 @@ def regenerate():
 def refresh():
 	generate(filedict[tabWidget.tabText(tabWidget.currentIndex())])
 	view(tabWidget.tabText(tabWidget.currentIndex()))
-
-# edit selected item and the item being viewed
-edit = lambda path: os.system(te + ' ' + path)
 
 # backup
 zip = lambda path: os.system(szip + ' a ' + os.path.join(zipfolder, backuptime + '.zip') + ' -p' + password + ' ' + path)
@@ -106,22 +102,20 @@ def snote(name):
 			with open(snkeylist, 'a', encoding='utf-8') as snkl:
 				snkl.write('\n' + name + '    ' + snret[0]['key'])
 
-# find next
-findnext = lambda: crTabWidget().focusNextChild(crTabWidget().findText(blineEdit.text()))
+# find in all notes
+findtext = ''
 def finds(func, arg):
 	global founditems, foundindex, findtext
 	if findtext != llineEdit.text(): # new search words
 		initialize() # clear previous highlights
+		alldo(lambda i: i.setBackgroundColor(QColor('blue')), founditems)
 		foundindex = 0; founditems = []; findtext = llineEdit.text() # reset variables
 		founditems = func(arg)
-		alldo(lambda i: i.setBackgroundColor(QColor('blue')), founditems)
-		listWidget.setCurrentItem(founditems[0]) # select the first result
-	else: # get next result of the last search
-		if foundindex == len(founditems) - 1:
-			foundindex = 0
-		else:
-			foundindex += 1
-		listWidget.setCurrentItem(founditems[foundindex])
+	elif foundindex == len(founditems) - 1:
+		foundindex = 0
+	else:
+		foundindex += 1
+	listWidget.setCurrentItem(founditems[foundindex])
 def byname(text):
 	return listWidget.findItems(text, Qt.MatchFlag(16) and Qt.MatchFlag(1)) # 1: partial search, 4:regex, 16: case insensitive
 def bycontent(text):
@@ -130,7 +124,7 @@ def bycontent(text):
 			founditems.append(listWidget.item(index))
 	return founditems
 
-# apply some changes to QTabWidget
+# customize QTabWidget and QWidget for Note-
 class TabWidget(QTabWidget):
 	def __init__(self, parent=None):
 		super (TabWidget, self).__init__(parent)
@@ -144,17 +138,29 @@ class TabWidget(QTabWidget):
 	def addNewTab(self, title = 'Untitled'):
 		self.insertTab(0, QWebView(), title)
 		self.setCurrentIndex(0)
+class Widget(QWidget):
+	def __init__(self, parent=None):
+		super (Widget, self).__init__(parent)
+		screen = QDesktopWidget().screenGeometry()
+		self.setGeometry(0, 70, screen.width(), screen.height()-100)
+		self.setWindowTitle('Note-')
+		self.setWindowIcon(QIcon(self.style().standardIcon(QStyle.SP_DialogSaveButton)))
+		self.sysTrayIcon = QSystemTrayIcon(self)
+		self.sysTrayIcon.setIcon(QIcon(self.style().standardIcon(QStyle.SP_DialogSaveButton)))
+		self.connect(self.sysTrayIcon, SIGNAL('activated(QSystemTrayIcon::ActivationReason)'), self.activate)
+		self.sysTrayIcon.setVisible(True)
+	def changeEvent(self, event):
+		if self.isMinimized():
+			self.hide()
+	def activate(self, reason):
+		if reason == 1 or reason == 2: # 1: right click; 2: double click
+			self.show(); self.setWindowState(Qt.WindowActive)
 
 # start here
-findtext = ''
 alldo(foldercreate, [outfolder, zipfolder])
 app = QApplication(sys.argv)
-widget = QWidget()
-widget.setWindowTitle('Note-')
-widget.setWindowIcon(QIcon(widget.style().standardIcon(QStyle.SP_DialogSaveButton)))
-buttonLayout = QHBoxLayout()
-rightHalf = QVBoxLayout()
-fullLayout = QHBoxLayout()
+widget = Widget()
+fullLayout, buttonLayout, rightHalf = QHBoxLayout(), QHBoxLayout(), QVBoxLayout()
 tabWidget = TabWidget()
 listWidget = QListWidget()
 listWidget.setFixedWidth(150)
@@ -176,14 +182,12 @@ pushButton('SNote F10', 'Backup selected item to SimpleNote', lambda:snote(crLis
 pushButton('Pack F11', 'Pack all items with password', zipall, Qt.Key_F11)
 pushButton('Restore C+F11', 'Restore selected item from the latest pack', lambda:unzip(filedict[crListItem()]), Qt.CTRL + Qt.Key_F11)
 buttonLayout.addWidget(blineEdit)
-pushButton('Find Next F12', 'Find string in currently viewing item', findnext, Qt.Key_F12)
+pushButton('Find Next F12', 'Find string in currently viewing item', lambda: crTabWidget().focusNextChild(crTabWidget().findText(blineEdit.text())), Qt.Key_F12)
 rightHalf.addWidget(tabWidget)
 rightHalf.addLayout(buttonLayout)
 fullLayout.addWidget(listWidget)
 fullLayout.addLayout(rightHalf)
 widget.setLayout(fullLayout)
-screen = QDesktopWidget().screenGeometry()
-widget.setGeometry(0, 70, screen.width(), screen.height()-100)
 initialize()
 widget.show()
 app.exec_()
