@@ -108,9 +108,9 @@ def finds(func, arg):
 	global founditems, foundindex, findtext
 	if findtext != llineEdit.text(): # new search words
 		initialize() # clear previous highlights
-		alldo(lambda i: i.setBackgroundColor(QColor('blue')), founditems)
 		foundindex = 0; founditems = []; findtext = llineEdit.text() # reset variables
 		founditems = func(arg)
+		alldo(lambda i: i.setBackgroundColor(QColor('blue')), founditems)
 	elif foundindex == len(founditems) - 1:
 		foundindex = 0
 	else:
