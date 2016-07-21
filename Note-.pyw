@@ -3,28 +3,25 @@ from PyQt4.QtGui import *; from PyQt4.QtWebKit import QWebView,QWebPage; from Py
 from conf import * # import settings
 
 # lazy functions
-outpath = lambda inpath: outfolder + os.path.basename(inpath) + '.html'
+outpath = lambda outname: outfolder + os.path.basename(outname) + '.html'
 crListItem = lambda: listWidget.currentItem().text()
 crTabWidget = lambda: tabWidget.currentWidget()
 lastbackup = lambda: os.path.join(zipfolder, max(os.listdir(zipfolder)))
 edit = lambda path: os.system(te + ' ' + path)
-def alldo(func, list):
-	for v in list:
+def alldo(func, varlist):
+	for v in varlist:
 		func(v)
-# add item to listWidget with format
-def add2List(name):
+def add2List(name): # add item to listWidget with format
 	lItem = QListWidgetItem(name)
 	lItem.setBackgroundColor(QColor('black'))
 	lItem.setTextColor(QColor('white'))
 	lItem.setFont(QFont('serif', 14))
 	listWidget.addItem(lItem)
-# check existence and create
-def foldercreate(path):
+def foldercreate(path): # check existence and create
 	folderexist = os.path.isdir(path)
 	if folderexist == False:
 		os.mkdir(path)
-# create buttons with function and geometry
-def pushButton(text, tooltip, func, key):
+def pushButton(text, tooltip, func, key): # create buttons with function and shortcuts
 	button = QPushButton(text)
 	button.clicked.connect(func)
 	button.setToolTip(tooltip)
@@ -46,7 +43,7 @@ def initialize():
 
 # viewing related
 def view(name):
-	with open(outpath(filedict[name]), 'r', encoding='utf-8') as visit:
+	with open(outpath(name), 'r', encoding='utf-8') as visit:
 		tabWidget.setTabText(tabWidget.currentIndex(), name)
 		crTabWidget().setHtml(visit.read())
 def newtab():
@@ -54,23 +51,19 @@ def newtab():
 	view(crListItem())
 
 # generate from input files
-html = lambda infile, informat: os.system(pandoc + ' ' + infile + ' -f ' + informat + ' -t html --highlight-style=pygments -H ' + cssjs + ' -s -o ' + outpath(infile))
-def generate(itempath):
-	ext = os.path.splitext(itempath)[-1][1:]
-	print(ext)
+html = lambda name, informat: os.system(pandoc + ' \"' + filedict[name] + '\" -f ' + informat + ' -t html --highlight-style=pygments -H ' + cssjs + ' -s -o \"' + outpath(name) + '\"')
+def generate(itemname):
+	ext = os.path.splitext(filedict[itemname])[-1][1:]
 	if ext == 'tex':
-		html(itempath, 'latex')
+		html(itemname, 'latex')
 	elif ext in ('md', 'txt'):
-		html(itempath, 'markdown_github')
+		html(itemname, 'markdown_github')
 	elif ext in ('rst', 'org', 'textile', 'rtf', 'docx', 'epub', 'opml'):
-		html(itempath, ext)
+		html(itemname, ext)
 	else:
-		html(itempath, 'html')
-def regenerate():
-	generate(filedict[crListItem()])
-	view(crListItem())
+		html(itemname, 'html')
 def refresh():
-	generate(filedict[tabWidget.tabText(tabWidget.currentIndex())])
+	generate(tabWidget.tabText(tabWidget.currentIndex()))
 	view(tabWidget.tabText(tabWidget.currentIndex()))
 
 # backup
@@ -171,7 +164,7 @@ pushButton('Find F2', 'Find the string in given names', lambda: finds(byname, ll
 pushButton('FIF F3', 'Find the string in files', lambda: finds(bycontent, llineEdit.text()), Qt.Key_F3)
 buttonLayout.addWidget(llineEdit)
 pushButton('F5', 'Regenerate currently viewing item', refresh, Qt.Key_F5)
-pushButton('Generate F6', 'Generate all items to HTML', lambda:alldo(generate, filedict.values()), Qt.Key_F6)
+pushButton('Generate F6', 'Generate all items to HTML', lambda:alldo(generate, filedict.keys()), Qt.Key_F6)
 pushButton('Edit F8', 'Edit item in current tab', lambda: edit(filedict[tabWidget.tabText(tabWidget.currentIndex())]), Qt.Key_F8)
 pushButton('FTP F9', 'Upload currently viewing item to FTP/WebDAV', lambda: ftp(tabWidget.tabText(tabWidget.currentIndex())), Qt.Key_F9)
 pushButton('FA C+F9', 'Pack all items with password and upload to FTP/WebDAV', ftpall, Qt.CTRL + Qt.Key_F9)
