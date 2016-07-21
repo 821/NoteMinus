@@ -1,4 +1,4 @@
-import sys,re,os,shutil,datetime,simplenote
+import sys,re,os,shutil,time,simplenote
 from PyQt4.QtGui import *; from PyQt4.QtWebKit import QWebView,QWebPage; from PyQt4.QtCore import *
 from conf import * # import settings
 
@@ -78,7 +78,7 @@ zip = lambda path: os.system(szip + ' a ' + os.path.join(zipfolder, backuptime +
 unzip = lambda path: os.system(szip + ' x ' + lastbackup() + ' -o' + os.path.dirname(path) + ' ' + os.path.basename(path) + ' -p' + password + ' -y')
 def zipall():
 	global backuptime
-	backuptime = datetime.datetime.now().strftime("%y%m%d%H%M%S")
+	backuptime = time.strftime("%y%m%d%H%M%S")
 	alldo(zip, filedict.values())
 ftp = lambda path: os.system(WinSCP + ' /command "open ' + server + '" "put ' + path + ' ' + upfolder + '" "exit"')
 def ftpall():
@@ -141,8 +141,7 @@ class TabWidget(QTabWidget):
 class Widget(QWidget):
 	def __init__(self, parent=None):
 		super (Widget, self).__init__(parent)
-		screen = QDesktopWidget().screenGeometry()
-		self.setGeometry(0, 70, screen.width(), screen.height()-100)
+		self.showMaximized()
 		self.setWindowTitle('Note-')
 		self.setWindowIcon(QIcon(self.style().standardIcon(QStyle.SP_DialogSaveButton)))
 		self.sysTrayIcon = QSystemTrayIcon(self)
@@ -151,10 +150,10 @@ class Widget(QWidget):
 		self.sysTrayIcon.setVisible(True)
 	def changeEvent(self, event):
 		if self.isMinimized():
-			self.hide()
+			self.setWindowFlags(self.windowFlags() & ~Qt.Tool) # window hiding trick
 	def activate(self, reason):
 		if reason == 1 or reason == 2: # 1: right click; 2: double click
-			self.show(); self.setWindowState(Qt.WindowActive)
+			self.show(); self.setWindowState(Qt.WindowActive);self.showMaximized()
 
 # start here
 alldo(foldercreate, [outfolder, zipfolder])
@@ -164,9 +163,9 @@ fullLayout, buttonLayout, rightHalf = QHBoxLayout(), QHBoxLayout(), QVBoxLayout(
 tabWidget = TabWidget()
 listWidget = QListWidget()
 listWidget.setFixedWidth(150)
-widget.connect(listWidget, SIGNAL('itemClicked (QListWidgetItem *)'), lambda: view(crListItem()))
-widget.connect(listWidget, SIGNAL('itemDoubleClicked (QListWidgetItem *)'), newtab)
+widget.connect(listWidget, SIGNAL('itemDoubleClicked (QListWidgetItem *)'), lambda: view(crListItem()))
 llineEdit, blineEdit = QLineEdit(), QLineEdit()
+pushButton('+', 'Add new tab, Ctrl+T', newtab, Qt.CTRL+Qt.Key_T)
 pushButton('List F1', 'Reload the list', initialize, Qt.Key_F1)
 pushButton('Find F2', 'Find the string in given names', lambda: finds(byname, llineEdit.text()), Qt.Key_F2)
 pushButton('FIF F3', 'Find the string in files', lambda: finds(bycontent, llineEdit.text()), Qt.Key_F3)
