@@ -3,6 +3,7 @@ cssjs = 'E:/Note-/style.css'
 outfolder = 'E:/Note-/html/' # will generate if not exist
 zipfolder = 'E:/Note-/backup/' # local backup folder
 upfolder = '/Note-/' # assign a folder on your FTP/WebDAV for Note-
+cloudfolder = 'E:/Note-/source/' # for notes in the cloud
 te = 'D:/Progra~1/EmEditor/EmEditor.exe'
 pandoc = 'pandoc.exe'
 szip = '7z.exe'

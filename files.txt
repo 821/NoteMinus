@@ -1,2 +1,4 @@
 說明    E:/NoteMinus/readme.md
+雲筆記    https://github.com/821/821.github.com/raw/master/404.md
+普通網址    http://baidu.com/
 MMB    E:/1.jpg

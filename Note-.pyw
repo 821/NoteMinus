@@ -1,22 +1,22 @@
-import sys,re,os,shutil,time,simplenote
+import sys,re,os,shutil,time,simplenote,requests
 from PyQt4.QtGui import *; from PyQt4.QtWebKit import QWebView,QWebPage; from PyQt4.QtCore import *
 from conf import * # import settings
 
 # lazy functions
-outpath = lambda outname: outfolder + os.path.basename(outname) + '.html'
+outpath = lambda name: os.path.join(outfolder, name + '.html')
 crListItem = lambda: listWidget.currentItem().text()
 crTabWidget = lambda: tabWidget.currentWidget()
+crTabText = lambda: tabWidget.tabText(tabWidget.currentIndex())
 lastbackup = lambda: os.path.join(zipfolder, max(os.listdir(zipfolder)))
-edit = lambda path: os.system(te + ' ' + path)
 def alldo(func, varlist):
 	for v in varlist:
 		func(v)
 def add2List(name): # add item to listWidget with format
-	lItem = QListWidgetItem(name)
-	lItem.setBackgroundColor(QColor('black'))
-	lItem.setTextColor(QColor('white'))
-	lItem.setFont(QFont('serif', 14))
-	listWidget.addItem(lItem)
+	lwItem = QListWidgetItem(name)
+	lwItem.setBackgroundColor(QColor('black'))
+	lwItem.setTextColor(QColor('white'))
+	lwItem.setFont(QFont('serif', 16))
+	listWidget.addItem(lwItem)
 def foldercreate(path): # check existence and create
 	folderexist = os.path.isdir(path)
 	if folderexist == False:
@@ -37,12 +37,15 @@ def initialize():
 	with open(listfile, 'r', encoding='utf-8') as f:
 		for i in f.read().splitlines():
 			j = i.split('    ')
-			filedict[j[0]] = os.path.normpath(j[1])
-			if j[0] != 'MMB':
+			filedict[j[0]] = j[1]
+			if j[0].find('MMB') != 0:
 				add2List(j[0])
 
 # viewing related
 def view(name):
+	htmlExist = os.path.isfile(outpath(name))
+	if htmlExist == False:
+		generate(name)
 	with open(outpath(name), 'r', encoding='utf-8') as visit:
 		tabWidget.setTabText(tabWidget.currentIndex(), name)
 		crTabWidget().setHtml(visit.read())
@@ -54,17 +57,20 @@ def newtab():
 html = lambda name, informat: os.system(pandoc + ' \"' + filedict[name] + '\" -f ' + informat + ' -t html --highlight-style=pygments -H ' + cssjs + ' -s -o \"' + outpath(name) + '\"')
 def generate(itemname):
 	ext = os.path.splitext(filedict[itemname])[-1][1:]
+	if filedict[itemname].find('http') == 0:
+		r = requests.get(filedict[itemname], allow_redirects = True, timeout = 5)
+		with open(os.path.join(cloudfolder, itemname + '.' + ext), 'wb') as note:
+			note.write(r.content)
+		filedict[itemname] = os.path.join(cloudfolder, itemname + '.' + ext)
 	if ext == 'tex':
 		html(itemname, 'latex')
-	elif ext in ('md', 'txt'):
-		html(itemname, 'markdown_github')
-	elif ext in ('rst', 'org', 'textile', 'rtf', 'docx', 'epub', 'opml'):
+	elif ext in ('rst', 'org', 'textile', 'rtf', 'docx', 'epub', 'opml', 'html'):
 		html(itemname, ext)
 	else:
-		html(itemname, 'html')
+		html(itemname, 'markdown_github')
 def refresh():
-	generate(tabWidget.tabText(tabWidget.currentIndex()))
-	view(tabWidget.tabText(tabWidget.currentIndex()))
+	generate(crTabText())
+	view(crTabText())
 
 # backup
 zip = lambda path: os.system(szip + ' a ' + os.path.join(zipfolder, backuptime + '.zip') + ' -p' + password + ' ' + path)
@@ -146,10 +152,10 @@ class Widget(QWidget):
 			self.setWindowFlags(self.windowFlags() & ~Qt.Tool) # window hiding trick
 	def activate(self, reason):
 		if reason == 1 or reason == 2: # 1: right click; 2: double click
-			self.show(); self.setWindowState(Qt.WindowActive);self.showMaximized()
+			self.show(); self.setWindowState(Qt.WindowActive); self.showMaximized()
 
 # start here
-alldo(foldercreate, [outfolder, zipfolder])
+alldo(foldercreate, [outfolder, zipfolder, cloudfolder])
 app = QApplication(sys.argv)
 widget = Widget()
 fullLayout, buttonLayout, rightHalf = QHBoxLayout(), QHBoxLayout(), QVBoxLayout()
@@ -164,13 +170,12 @@ pushButton('Find F2', 'Find the string in given names', lambda: finds(byname, ll
 pushButton('FIF F3', 'Find the string in files', lambda: finds(bycontent, llineEdit.text()), Qt.Key_F3)
 buttonLayout.addWidget(llineEdit)
 pushButton('F5', 'Regenerate currently viewing item', refresh, Qt.Key_F5)
-pushButton('Generate F6', 'Generate all items to HTML', lambda:alldo(generate, filedict.keys()), Qt.Key_F6)
-pushButton('Edit F8', 'Edit item in current tab', lambda: edit(filedict[tabWidget.tabText(tabWidget.currentIndex())]), Qt.Key_F8)
-pushButton('FTP F9', 'Upload currently viewing item to FTP/WebDAV', lambda: ftp(tabWidget.tabText(tabWidget.currentIndex())), Qt.Key_F9)
+pushButton('Edit F8', 'Edit item in current tab', lambda: os.system(te + ' ' + filedict[crTabText()]), Qt.Key_F8)
+pushButton('FTP F9', 'Upload currently viewing item to FTP/WebDAV', lambda: ftp(crTabText()), Qt.Key_F9)
 pushButton('FA C+F9', 'Pack all items with password and upload to FTP/WebDAV', ftpall, Qt.CTRL + Qt.Key_F9)
-pushButton('SNote F10', 'Backup currently viewing item to SimpleNote', lambda:snote(tabWidget.tabText(tabWidget.currentIndex())), Qt.Key_F10)
+pushButton('SNote F10', 'Backup currently viewing item to SimpleNote', lambda:snote(crTabText()), Qt.Key_F10)
 pushButton('Pack F11', 'Pack all items with password', zipall, Qt.Key_F11)
-pushButton('Restore C+F11', 'Restore currently viewing item from the latest pack', lambda:unzip(filedict[tabWidget.tabText(tabWidget.currentIndex())]), Qt.CTRL + Qt.Key_F11)
+pushButton('Restore C+F11', 'Restore currently viewing item from the latest pack', lambda:unzip(filedict[crTabText()]), Qt.CTRL + Qt.Key_F11)
 buttonLayout.addWidget(blineEdit)
 pushButton('Find Next cr', 'Find string in currently viewing item', lambda: crTabWidget().focusNextChild(crTabWidget().findText(blineEdit.text())), Qt.Key_Return)
 rightHalf.addWidget(tabWidget)
