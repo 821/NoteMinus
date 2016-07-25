@@ -1,3 +1,4 @@
+appstyle = 'font:20px,serif; border:1px solid gold; background:#151a15; color:#C98844; padding: 1px 5px 1px 5px;'
 listfile = 'files.txt' # format: string    path/to/file - the string must be unique in the list, it works like a combination of tags + title, and is searchable
 cssjs = 'E:/Note-/style.css'
 outfolder = 'E:/Note-/html/' # will generate if not exist

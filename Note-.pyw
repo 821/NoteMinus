@@ -4,6 +4,7 @@ from conf import * # import settings
 
 # lazy functions
 outpath = lambda name: os.path.join(outfolder, name + '.html')
+add2List = lambda name: listWidget.addItem(QListWidgetItem(name))
 crListItem = lambda: listWidget.currentItem().text()
 crTabWidget = lambda: tabWidget.currentWidget()
 crTabText = lambda: tabWidget.tabText(tabWidget.currentIndex())
@@ -11,12 +12,6 @@ lastbackup = lambda: os.path.join(zipfolder, max(os.listdir(zipfolder)))
 def alldo(func, varlist):
 	for v in varlist:
 		func(v)
-def add2List(name): # add item to listWidget with format
-	lwItem = QListWidgetItem(name)
-	lwItem.setBackgroundColor(QColor('black'))
-	lwItem.setTextColor(QColor('white'))
-	lwItem.setFont(QFont('serif', 16))
-	listWidget.addItem(lwItem)
 def foldercreate(path): # check existence and create
 	folderexist = os.path.isdir(path)
 	if folderexist == False:
@@ -152,16 +147,18 @@ class Widget(QWidget):
 			self.setWindowFlags(self.windowFlags() & ~Qt.Tool) # window hiding trick
 	def activate(self, reason):
 		if reason == 1 or reason == 2: # 1: right click; 2: double click
-			self.show(); self.setWindowState(Qt.WindowActive); self.showMaximized()
+			self.setWindowState(Qt.WindowActive)
+			self.showMaximized()
 
 # start here
 alldo(foldercreate, [outfolder, zipfolder, cloudfolder])
 app = QApplication(sys.argv)
 widget = Widget()
+widget.setStyleSheet(appstyle)
 fullLayout, buttonLayout, rightHalf = QHBoxLayout(), QHBoxLayout(), QVBoxLayout()
 tabWidget = TabWidget()
 listWidget = QListWidget()
-listWidget.setFixedWidth(150)
+listWidget.setFixedWidth(180)
 widget.connect(listWidget, SIGNAL('itemDoubleClicked (QListWidgetItem *)'), lambda: view(crListItem()))
 llineEdit, blineEdit = QLineEdit(), QLineEdit()
 pushButton('+', 'Add new tab, Ctrl+T', newtab, Qt.CTRL+Qt.Key_T)
